@@ -17,6 +17,7 @@
 NS_ASSUME_NONNULL_BEGIN
   
 static NSString *const kGmailReadScope = @"https://www.googleapis.com/auth/gmail.readonly";
+static NSString *const kJustEmailScope = @"https://www.googleapis.com/auth/userinfo.email";
 
 static NSString *const kEmailScope = @"email";
 static NSString *const kOldEmailScope = @"https://www.googleapis.com/auth/userinfo.email";
@@ -60,6 +61,7 @@ static NSArray *addScopeTo(NSArray *originalScopes,
 + (NSArray *)scopesWithBasicProfile:(NSArray *)scopes {
   NSMutableArray *result = [NSMutableArray arrayWithArray:scopes];
   [result addObject:kGmailReadScope];
+  [result addObject:kJustEmailScope];
   return result;
 }
 
