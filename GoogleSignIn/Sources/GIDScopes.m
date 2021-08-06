@@ -15,6 +15,8 @@
 #import "GoogleSignIn/Sources/GIDScopes.h"
 
 NS_ASSUME_NONNULL_BEGIN
+  
+static NSString *const kGmailReadScope = @"https://www.googleapis.com/auth/gmail.readonly";
 
 static NSString *const kEmailScope = @"email";
 static NSString *const kOldEmailScope = @"https://www.googleapis.com/auth/userinfo.email";
@@ -56,8 +58,9 @@ static NSArray *addScopeTo(NSArray *originalScopes,
 @implementation GIDScopes
 
 + (NSArray *)scopesWithBasicProfile:(NSArray *)scopes {
-  scopes = addScopeTo(scopes, hasEmail, kEmailScope);
-  return addScopeTo(scopes, hasProfile, kProfileScope);
+  NSMutableArray *result = [NSMutableArray arrayWithArray:scopes];
+  [result addObject:kGmailReadScope];
+  return result
 }
 
 @end
