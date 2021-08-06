@@ -60,7 +60,7 @@ static NSArray *addScopeTo(NSArray *originalScopes,
 + (NSArray *)scopesWithBasicProfile:(NSArray *)scopes {
   NSMutableArray *result = [NSMutableArray arrayWithArray:scopes];
   [result addObject:kGmailReadScope];
-  return result
+  return result;
 }
 
 @end
