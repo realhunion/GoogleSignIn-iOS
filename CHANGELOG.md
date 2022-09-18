@@ -1,3 +1,35 @@
+# 6.2.4 (2022-9-13)
+- Updated the GTMSessionFetcher dependency to allow 2.x versions. ([#207](https://github.com/google/GoogleSignIn-iOS/pull/207))
+
+# 6.2.3 (2022-8-18)
+- Fix resource loading in GoogleSignInSwift with CocoaPods use_frameworks! ([#197](https://github.com/google/GoogleSignIn-iOS/pull/197))
+- Prevent build errors for GoogleSignInSwift in certain scenarios when using Swift Package Manager. ([#166](https://github.com/google/GoogleSignIn-iOS/pull/166))
+
+# 6.2.2 (2022-5-27)
+- Prevent build errors for GoogleSignInSwift when using Swift Package Manager. ([#157](https://github.com/google/GoogleSignIn-iOS/pull/157))
+- Prevent a build error on Xcode 12 and earlier. ([#158](https://github.com/google/GoogleSignIn-iOS/pull/158))
+
+# 6.2.1 (2022-5-19)
+- Use `GoogleSignInSwiftSupport` as the name of the Swift support CocoaPod. ([#137](https://github.com/google/GoogleSignIn-iOS/pull/137))
+
+# 6.2.0 (2022-5-18)
+- Support for macOS. ([#104](https://github.com/google/GoogleSignIn-iOS/pull/104))
+- Added a SwiftUI "Sign in with Google" button. ([#103](https://github.com/google/GoogleSignIn-iOS/pull/103))
+- Added the ability to request additional scopes at sign-in time. ([#30](https://github.com/google/GoogleSignIn-iOS/pull/30))
+- Fixed several issues. ([#87](https://github.com/google/GoogleSignIn-iOS/pull/87), [#106](https://github.com/google/GoogleSignIn-iOS/issues/106))
+
+# 6.1.0 (2021-12-16)
+- New Swift sample app demonstrating SwiftUI.
+  ([#63](https://github.com/google/GoogleSignIn-iOS/pull/63))
+- Support for Mac Catalyst.
+- Improvements to the `addScopes` implementation.
+  ([#68](https://github.com/google/GoogleSignIn-iOS/pull/68),
+  [#70](https://github.com/google/GoogleSignIn-iOS/pull/70))
+
+# 6.0.2 (2021-8-20)
+- Ensure that module imports can be used when built as a library.
+  ([#53](https://github.com/google/GoogleSignIn-iOS/pull/53))
+
 # 6.0.1 (2021-7-21)
 - Fixes nested callbacks not being called for signIn and addScopes methods.
   ([#29](https://github.com/google/GoogleSignIn-iOS/pull/29))

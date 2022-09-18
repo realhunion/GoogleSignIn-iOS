@@ -16,15 +16,22 @@
 
 #import <Foundation/Foundation.h>
 
-@protocol GTMFetcherAuthorizationProtocol;
+// We have to import GTMAppAuth because forward declaring the protocol does
+// not generate the `fetcherAuthorizer` method below for Swift.
+#ifdef SWIFT_PACKAGE
+@import GTMAppAuth;
+#else
+#import <GTMAppAuth/GTMAppAuthFetcherAuthorization.h>
+#endif
+
 @class GIDAuthentication;
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// A callback block that takes a `GIDAuthentication` or an error if the attempt to refresh tokens
+/// A completion block that takes a `GIDAuthentication` or an error if the attempt to refresh tokens
 /// was unsuccessful.
-typedef void (^GIDAuthenticationAction)(GIDAuthentication *_Nullable authentication,
-                                        NSError *_Nullable error);
+typedef void (^GIDAuthenticationCompletion)(GIDAuthentication *_Nullable authentication,
+                                            NSError *_Nullable error);
 
 /// This class represents the OAuth 2.0 entities needed for sign-in.
 @interface GIDAuthentication : NSObject <NSSecureCoding>
@@ -52,15 +59,20 @@ typedef void (^GIDAuthenticationAction)(GIDAuthentication *_Nullable authenticat
 /// Gets a new authorizer for `GTLService`, `GTMSessionFetcher`, or `GTMHTTPFetcher`.
 ///
 /// @return A new authorizer
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (id<GTMFetcherAuthorizationProtocol>)fetcherAuthorizer;
+#pragma clang diagnostic pop
 
 /// Get a valid access token and a valid ID token, refreshing them first if they have expired or are
 /// about to expire.
 ///
-/// @param action A callback block that takes a `GIDAuthentication` or an error if the attempt to
-///     refresh tokens was unsuccessful.  The block will be called asynchronously on the main queue.
-- (void)doWithFreshTokens:(GIDAuthenticationAction)action;
+/// @param completion A completion block that takes a `GIDAuthentication` or an error if the attempt
+///     to refresh tokens was unsuccessful.  The block will be called asynchronously on the main
+///     queue.
+- (void)doWithFreshTokens:(GIDAuthenticationCompletion)completion;
 
 @end
+
 
 NS_ASSUME_NONNULL_END

@@ -17,31 +17,42 @@
 
 import PackageDescription
 
-let googleSignInVersion = "6.0.1"
+let googleSignInVersion = "6.2.4"
 
 let package = Package(
   name: "GoogleSignIn",
   defaultLocalization: "en",
-  platforms: [.iOS(.v9)],
+  platforms: [
+    .macOS(.v10_15),
+    .iOS(.v9)
+  ],
   products: [
     .library(
       name: "GoogleSignIn",
-      targets: ["GoogleSignIn"]
+      targets: [
+        "GoogleSignIn",
+      ]
+    ),
+    .library(
+      name: "GoogleSignInSwift",
+      targets: [
+        "GoogleSignInSwift",
+      ]
     ),
   ],
   dependencies: [
     .package(
       name: "AppAuth",
       url: "https://github.com/openid/AppAuth-iOS.git",
-      "1.4.0" ..< "2.0.0"),
+      "1.5.0" ..< "2.0.0"),
     .package(
       name: "GTMAppAuth",
       url: "https://github.com/google/GTMAppAuth.git",
-      "1.2.0" ..< "2.0.0"),
+      "1.3.0" ..< "2.0.0"),
     .package(
       name: "GTMSessionFetcher",
       url: "https://github.com/google/gtm-session-fetcher.git",
-      "1.5.0" ..< "2.0.0"),
+      "1.5.0" ..< "3.0.0"),
     .package(
       name: "OCMock",
       url: "https://github.com/firebase/ocmock.git",
@@ -75,8 +86,16 @@ let package = Package(
         .linkedFramework("Foundation"),
         .linkedFramework("LocalAuthentication"),
         .linkedFramework("Security"),
-        .linkedFramework("UIKit"),
+        .linkedFramework("AppKit", .when(platforms: [.macOS])),
+        .linkedFramework("UIKit", .when(platforms: [.iOS])),
       ]
+    ),
+    .target(
+      name: "GoogleSignInSwift",
+      dependencies: [
+        "GoogleSignIn",
+      ],
+      path: "GoogleSignInSwift/Sources"
     ),
     .testTarget(
       name: "GoogleSignIn-UnitTests",
@@ -95,5 +114,10 @@ let package = Package(
         .define("GID_SDK_VERSION", to: googleSignInVersion),
       ]
     ),
+    .testTarget(
+      name: "GoogleSignInSwift-UnitTests",
+      dependencies: ["GoogleSignInSwift"],
+      path: "GoogleSignInSwift/Tests/Unit"
+    )
   ]
 )

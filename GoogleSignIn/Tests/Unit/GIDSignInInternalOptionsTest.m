@@ -31,30 +31,45 @@
 
 - (void)testDefaultOptions {
   id configuration = OCMStrictClassMock([GIDConfiguration class]);
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
   id presentingViewController = OCMStrictClassMock([UIViewController class]);
+#elif TARGET_OS_OSX
+  id presentingWindow = OCMStrictClassMock([NSWindow class]);
+#endif // TARGET_OS_IOS || TARGET_OS_MACCATALYST
   NSString *loginHint = @"login_hint";
-  GIDSignInCallback callback = ^(GIDGoogleUser * _Nullable user, NSError * _Nullable error) {};
+  GIDSignInCompletion completion = ^(GIDGoogleUser * _Nullable user, NSError * _Nullable error) {};
   
   GIDSignInInternalOptions *options =
       [GIDSignInInternalOptions defaultOptionsWithConfiguration:configuration
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
                                        presentingViewController:presentingViewController
+#elif TARGET_OS_OSX
+                                               presentingWindow:presentingWindow
+#endif // TARGET_OS_IOS || TARGET_OS_MACCATALYST
                                                       loginHint:loginHint
-                                                       callback:callback];
+                                                  addScopesFlow:NO
+                                                     completion:completion];
   XCTAssertTrue(options.interactive);
   XCTAssertFalse(options.continuation);
+  XCTAssertFalse(options.addScopesFlow);
   XCTAssertNil(options.extraParams);
 
   OCMVerifyAll(configuration);
+#if TARGET_OS_IOS || TARGET_OS_MACCATALYST
   OCMVerifyAll(presentingViewController);
+#elif TARGET_OS_OSX
+  OCMVerifyAll(presentingWindow);
+#endif // TARGET_OS_IOS || TARGET_OS_MACCATALYST
 }
 
 - (void)testSilentOptions {
-  GIDSignInCallback callback = ^(GIDGoogleUser * _Nullable user, NSError * _Nullable error) {};
-  GIDSignInInternalOptions *options = [GIDSignInInternalOptions silentOptionsWithCallback:callback];
+  GIDSignInCompletion completion = ^(GIDGoogleUser * _Nullable user, NSError * _Nullable error) {};
+  GIDSignInInternalOptions *options = [GIDSignInInternalOptions
+                                       silentOptionsWithCompletion:completion];
   XCTAssertFalse(options.interactive);
   XCTAssertFalse(options.continuation);
   XCTAssertNil(options.extraParams);
-  XCTAssertEqual(options.callback, callback);
+  XCTAssertEqual(options.completion, completion);
 }
 
 @end

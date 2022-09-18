@@ -14,8 +14,6 @@
 
 #import "GoogleSignIn/Tests/Unit/GIDFakeMainBundle.h"
 
-#import <UIKit/UIKit.h>
-
 #import <GoogleUtilities/GULSwizzler.h>
 #import <GoogleUtilities/GULSwizzler+Unswizzle.h>
 

@@ -11,6 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#import <TargetConditionals.h>
+
+#if TARGET_OS_IOS && !TARGET_OS_MACCATALYST
 
 #import <UIKit/UIKit.h>
 #import <XCTest/XCTest.h>
@@ -66,6 +69,11 @@ NS_ASSUME_NONNULL_BEGIN
   _isIOS10 = [UIDevice currentDevice].systemVersion.integerValue == 10;
   _keyWindowSet = NO;
   _presentedViewController = nil;
+  UIWindow *fakeKeyWindow = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+  [GULSwizzler swizzleClass:[GIDEMMErrorHandler class]
+                   selector:@selector(keyWindow)
+            isClassSelector:NO
+                  withBlock:^() { return fakeKeyWindow; }];
   [GULSwizzler swizzleClass:[UIWindow class]
                    selector:@selector(makeKeyAndVisible)
             isClassSelector:NO
@@ -81,6 +89,9 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 - (void)tearDown {
+  [GULSwizzler unswizzleClass:[GIDEMMErrorHandler class]
+                     selector:@selector(keyWindow)
+              isClassSelector:NO];
   [GULSwizzler unswizzleClass:[UIWindow class]
                      selector:@selector(makeKeyAndVisible)
               isClassSelector:NO];
@@ -102,7 +113,11 @@ NS_ASSUME_NONNULL_BEGIN
                    selector:@selector(sharedApplication)
             isClassSelector:YES
                   withBlock:^() { return mockApplication; }];
-  [[mockApplication expect] openURL:[NSURL URLWithString:urlString]];
+  if (@available(iOS 10, *)) {
+    [[mockApplication expect] openURL:[NSURL URLWithString:urlString] options:@{} completionHandler:nil];
+  } else {
+    [[mockApplication expect] openURL:[NSURL URLWithString:urlString]];
+  }
   action();
   [mockApplication verify];
   [GULSwizzler unswizzleClass:[UIApplication class]
@@ -136,9 +151,6 @@ NS_ASSUME_NONNULL_BEGIN
   XCTAssertFalse(_keyWindowSet);
   XCTAssertNil(_presentedViewController);
 }
-
-// TODO(petea): Figure out why we have a race condition for the first of these to run.
-#if !SWIFT_PACKAGE
 
 // Verifies that the handler handles general EMM error with user tapping 'OK'.
 - (void)testGeneralEMMErrorOK {
@@ -464,8 +476,55 @@ NS_ASSUME_NONNULL_BEGIN
   [self testScreenlockRequiredCancel];
 }
 
-#endif
+// Temporarily disable testKeyWindow for Xcode 12 and under due to unexplained failure.
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000
+
+// Verifies that the `keyWindow` internal method works on all OS versions as expected.
+- (void)testKeyWindow {
+  // The original method has been swizzled in `setUp` so get its original implementation to test.
+  typedef id (*KeyWindowSignature)(id, SEL);
+  KeyWindowSignature keyWindowFunction = (KeyWindowSignature)
+      [GULSwizzler originalImplementationForClass:[GIDEMMErrorHandler class]
+                       selector:@selector(keyWindow)
+                isClassSelector:NO];
+  UIWindow *mockKeyWindow = OCMClassMock([UIWindow class]);
+  OCMStub(mockKeyWindow.isKeyWindow).andReturn(YES);
+  UIApplication *mockApplication = OCMClassMock([UIApplication class]);
+  [GULSwizzler swizzleClass:[UIApplication class]
+                   selector:@selector(sharedApplication)
+            isClassSelector:YES
+                  withBlock:^{ return mockApplication; }];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000
+  if (@available(iOS 15, *)) {
+    UIWindowScene *mockWindowScene = OCMClassMock([UIWindowScene class]);
+    OCMStub(mockApplication.connectedScenes).andReturn(@[mockWindowScene]);
+    OCMStub(mockWindowScene.activationState).andReturn(UISceneActivationStateForegroundActive);
+    OCMStub(mockWindowScene.keyWindow).andReturn(mockKeyWindow);
+  } else
+#endif  // __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000
+  {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_15_0
+    if (@available(iOS 13, *)) {
+      OCMStub(mockApplication.windows).andReturn(@[mockKeyWindow]);
+    } else {
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_13_0
+      OCMStub(mockApplication.keyWindow).andReturn(mockKeyWindow);
+#endif  // __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_13_0
+    }
+#endif  // __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_15_0
+  }
+  UIWindow *keyWindow =
+      keyWindowFunction([GIDEMMErrorHandler sharedInstance], @selector(keyWindow));
+  XCTAssertEqual(keyWindow, mockKeyWindow);
+  [GULSwizzler unswizzleClass:[UIApplication class]
+                     selector:@selector(sharedApplication)
+              isClassSelector:YES];
+}
+
+#endif  // __IPHONE_OS_VERSION_MAX_ALLOWED >= 150000
 
 @end
 
 NS_ASSUME_NONNULL_END
+
+#endif // TARGET_OS_IOS && !TARGET_OS_MACCATALYST
